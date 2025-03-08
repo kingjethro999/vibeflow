@@ -57,7 +57,7 @@ const Profile = () => {
             <FlatList
                 data={posts}
                 ListHeaderComponent={<UserHeader user={user} router={router} handleLogout={handleLogout} />}
-                ListHeaderComponentStyle={{marginBottom:30}}
+                ListHeaderComponentStyle={{ marginBottom: 30 }}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.listStyle}
                 keyExtractor={item => item?.id?.toString() || Math.random().toString()}
@@ -80,7 +80,7 @@ const Profile = () => {
                     </View>
                 )}
             />
-            
+
         </ScreenWrapper>
     )
 }
@@ -115,7 +115,7 @@ const UserHeader = ({ user, router, handleLogout }) => {
                     </View>
 
                     {/*email, phone, bio*/}
-                    <View style={{ gap: 10 }}>
+                    <View style={styles.textcontainer}>
                         <View style={styles.info}>
                             <Icon name="mail" size={20} color={theme.colors.textLight} />
                             <Text style={styles.infoText}>{user.email}</Text>
@@ -129,13 +129,9 @@ const UserHeader = ({ user, router, handleLogout }) => {
                         )}
 
                         {user?.bio && (
-                            <Text style={styles.infoText}>{user.bio}</Text>
+                            <Text style={styles.bioText}>{user.bio}</Text>
                         )}
-
-
                     </View>
-
-
                 </View>
             </View>
         </View >
@@ -177,17 +173,25 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: hp(3),
         fontWeight: '500',
-        color: theme.colors.textDark
+        color: theme.colors.textDark,
+    },
+    textcontainer: {
+        alignItems: 'center',
+        gap: 10,
     },
     info: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
+        justifyContent: 'center',
     },
     infoText: {
-        fontSize: hp(1.6),
-        fontWeight: '500',
-        color: theme.colors.textLight,
+        marginLeft: 10,
+        color: theme.colors.text,
+        textAlign: 'center',
+    },
+    bioText: {
+        color: theme.colors.text,
+        textAlign: 'center',
     },
     logoutButton: {
         position: 'absolute',
@@ -204,5 +208,5 @@ const styles = StyleSheet.create({
         fontSize: hp(2),
         textAlign: 'center',
         color: theme.colors.text,
-    }
+    },
 })

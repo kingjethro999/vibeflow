@@ -231,6 +231,17 @@ const Home = () => {
                     <Text style={styles.title}>VibeFlow</Text>
                     <View style={styles.icons}>
                         <TouchableOpacity
+                            onPress={() => router.push('search')}
+                            accessibilityLabel="Search"
+                        >
+                            <Icon
+                                name="search"
+                                size={hp(3.2)}
+                                strokeWidth={2}
+                                color={theme.colors.text}
+                            />
+                        </TouchableOpacity>
+                        <TouchableOpacity
                             onPress={() => {
                                 setHasNewNotification(false)
                                 router.push('notifications')
@@ -312,7 +323,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         // marginBottom: 10,
-        marginVertical:wp(4),
+        marginVertical: wp(4),
         marginHorizontal: wp(4),
     },
     title: {

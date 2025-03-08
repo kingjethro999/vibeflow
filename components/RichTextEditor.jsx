@@ -1,65 +1,127 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
-import { actions, RichEditor, RichToolbar } from 'react-native-pell-rich-editor'
-import { theme } from '../constants/theme'
+import React, { useRef, useEffect, useState } from 'react';
+import { View, StyleSheet } from 'react-native';
+import WebView from 'react-native-webview';
+import { theme } from '../constants/theme';
 
-const RichTextEditor = ({ editorRef, onChange }) => {
-    return (
-        <View style={{ minHeight: 285 }}>
-            <RichToolbar
-                actions={[
-                    actions.setStrikethrough,
-                    actions.removeFormat,
-                    actions.setBold,
-                    actions.setItalic,
-                    actions.insertOrderedList,
-                    actions.code,
-                    actions.insertLink,
-                    actions.blockquote,
-                    actions.line,
-                    actions.alignCenter,
-                    actions.alignLeft,
-                    actions.alignRight,
-                ]}
-                style={styles.richBar}
-                flatContainerStyle={styles.listStyle}
-                selectedIconTint={theme.colors.primaryDark}
-                editor={editorRef}
-                disabled={false}
-            />
+const RichTextEditor = ({ onChange, initialContent = '', editorRef, ...props }) => {
+  const webViewRef = useRef(null);
+  const [editorHeight, setEditorHeight] = useState(240);
 
-            <RichEditor
-                ref={editorRef}
-                containerStyle={styles.rich}
-                flatContainerStyle={styles.flatStyle}
-                editorStyle={styles.contentStyle}
-                placeholder={"What's on your mind?"}
-                onChange={onChange}
-            />
-        </View>
-    )
-}
+  const editorHTML = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <style>
+          body {
+            font-family: -apple-system, system-ui;
+            font-size: 16px;
+            color: ${theme.colors.text};
+            margin: 0;
+            padding: 8px;
+          }
+          #editor {
+            min-height: 200px;
+            outline: none;
+          }
+        </style>
+        <script>
+          function updateHTML() {
+            const content = document.getElementById('editor').innerHTML;
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'content',
+              content: content
+            }));
+          }
 
-export default RichTextEditor
+          function setContent(html) {
+            document.getElementById('editor').innerHTML = html;
+          }
+
+          function updateHeight() {
+            const height = document.documentElement.scrollHeight;
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'height',
+              height: height
+            }));
+          }
+        </script>
+      </head>
+      <body>
+        <div id="editor" contenteditable="true" onkeyup="updateHTML()" oninput="updateHeight()" placeholder="What's on your mind?"></div>
+      </body>
+    </html>
+  `;
+
+  useEffect(() => {
+    if (webViewRef.current && initialContent) {
+      webViewRef.current.injectJavaScript(`
+        setContent(\`${initialContent}\`);
+      `);
+    }
+  }, [initialContent]);
+
+  const handleMessage = (event) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === 'content') {
+        onChange(data.content);
+      } else if (data.type === 'height') {
+        setEditorHeight(Math.max(240, data.height));
+      }
+    } catch (error) {
+      console.error('Error handling WebView message:', error);
+    }
+  };
+
+  React.useImperativeHandle(editorRef, () => ({
+    setContentHTML: (html) => {
+      if (webViewRef.current) {
+        webViewRef.current.injectJavaScript(`
+          setContent(\`${html}\`);
+        `);
+      }
+    },
+    getContentHtml: () => {
+      return new Promise((resolve) => {
+        if (webViewRef.current) {
+          webViewRef.current.injectJavaScript(`
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'content',
+              content: document.getElementById('editor').innerHTML
+            }));
+          `);
+        }
+      });
+    }
+  }));
+
+  return (
+    <View style={styles.container}>
+      <WebView
+        ref={webViewRef}
+        source={{ html: editorHTML }}
+        style={[styles.webview, { height: editorHeight }]}
+        onMessage={handleMessage}
+        scrollEnabled={false}
+        hideKeyboardAccessoryView={true}
+        keyboardDisplayRequiresUserAction={false}
+        {...props}
+      />
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
-    richBar: {
-        borderTopRightRadius: theme.radius.xl,
-        borderTopLeftRadius: theme.radius.xl,
-        backgroundColor: theme.colors.gray,
-    },
-    rich: {
-        minHeight: 240,
-        flex: 1,
-        borderWidth: 1.5,
-        borderTopWidth: 0,
-        borderBottomLeftRadius: theme.radius.xl,
-        borderBottomRightRadius: theme.radius.xl,
-        borderColor: theme.colors.gray,
-        padding: 5,
-    },
-    flatStyle: {
-        paddingHorizontal: 8,
-        gap: 3,
-    }
-})
+  container: {
+    borderWidth: 1.5,
+    borderColor: theme.colors.gray,
+    borderRadius: theme.radius.xl,
+    overflow: 'hidden',
+  },
+  webview: {
+    backgroundColor: 'transparent',
+  }
+});
+
+export default RichTextEditor;

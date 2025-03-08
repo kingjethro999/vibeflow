@@ -21,7 +21,7 @@ const Notifications = () => {
     if (res.success) setNotifications(res.data);
   }
   return (
-    <ScreenWrapper>
+    <ScreenWrapper bg="white">
       <View style={styles.container}>
         <Header
         title="Notifications"

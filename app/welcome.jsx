@@ -18,8 +18,8 @@ const Welcome = () => {
                 <Image style={styles.welcomeImage} resizeMode='contain' source={require('../assets/images/welcome.png')} />
                 {/* title */}
                 <View style={{ gap: 20 }}>
-                    <Text style={styles.title}>VibeFlow!</Text>
-                    <Text style={styles.punchline}>Where Every Thought Finds a Home and Every Image tells a story.</Text>
+                <Text style={styles.title}>VibeFlow!</Text>
+                <Text style={styles.punchline}>Where Every Thought Finds a Home and Every Image tells a story.</Text>
                 </View>
                 {/* get started*/}
                 <View style={styles.footer}>
